@@ -41,6 +41,11 @@ Instead of manually reviewing every submission, the workflow uses AI to analyse 
 
 Form Submission → Google Gemini AI → Google Sheets → Conditional Routing → Gmail Response / Church Team Alert
 
+## Workflow Preview
+
+![AI-Powered Church Care Workflow](Capture%201.PNG)
+
+
 ## Use Case
 
 This system demonstrates how AI and automation can support church administration and member care by reducing repetitive manual work, improving response time, and helping important requests receive appropriate attention.
