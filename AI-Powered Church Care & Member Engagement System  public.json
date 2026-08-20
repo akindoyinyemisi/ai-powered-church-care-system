@@ -1,0 +1,443 @@
+{
+  "name": "AI-Powered Church Care & Member Engagement System",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "RCCG THE Envoys ABULE EGBA Church Connect & Care Form",
+        "formDescription": "Welcome! Please complete this form and let us know how we can connect with, support, or pray with you.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email Address",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Phone Number"
+            },
+            {
+              "fieldLabel": "How can we help you?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": " First-Time Visitor"
+                  },
+                  {
+                    "option": "Prayer Request"
+                  },
+                  {
+                    "option": "Pastoral Care"
+                  },
+                  {
+                    "option": "Welfare Support"
+                  },
+                  {
+                    "option": "Membership"
+                  },
+                  {
+                    "option": "Join a Department"
+                  },
+                  {
+                    "option": "  Testimony"
+                  },
+                  {
+                    "option": "General Enquiry"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Your Message",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Preferred Contact Method",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Email"
+                  },
+                  {
+                    "option": "Calling"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -272,
+        160
+      ],
+      "id": "395b4d11-c74c-47b1-ab3d-4c417bc0948d",
+      "name": "On form submission",
+      "webhookId": "316ca57a-0542-4f1b-af62-33f0b882c0d4"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an AI Church Care Assistant for RCCG The Envoys, Abule Egba.\n\nAnalyze the church member's form submission.\n\nIdentify:\n1. The person's main need or request.\n2. The appropriate category: First-Time Visitor, Prayer Request, Pastoral Care, Welfare Support, Membership, Join a Department, Testimony, or General Enquiry.\n3. Priority: Low, Medium, High, or Urgent.\n4. A short warm and compassionate response.\n5. Whether church leadership needs to follow up: Yes or No.\n\nForm submission:\nFull Name: {{ $json[\"Full Name\"] }}\nEmail: {{ $json[\"Email Address\"] }}\nPhone: {{ $json[\"Phone Number\"] }}\nRequest Type: {{ $json[\"How can we help you?\"] }}\nMessage: {{ $json[\"Your Message\"] }}\nPreferred Contact Method: {{ $json[\"Preferred Contact Method\"] }}\n\nIMPORTANT OUTPUT FORMAT:\n\nReturn your answer using EXACTLY these labels, with no bold formatting, no asterisks, and no extra headings:\n\nCategory: [category]\nPriority: [Low, Medium, or High]\nSummary: [short summary]\nResponse: [warm pastoral response]\nLeadership Follow-up: [Yes or No]\n\nDo not use ** around any label."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        -96,
+        160
+      ],
+      "id": "05157fcc-cb1f-4489-a030-b3fbd9c65ce5",
+      "name": "Message a model",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "154MlagRtEgGmpLmQeie4LXk6wTlEyLHW9CMqFq7BBYw",
+          "mode": "list",
+          "cachedResultName": "RCCG The Envoys- church Connect & Care Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/154MlagRtEgGmpLmQeie4LXk6wTlEyLHW9CMqFq7BBYw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/154MlagRtEgGmpLmQeie4LXk6wTlEyLHW9CMqFq7BBYw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $('On form submission').item.json.submittedAt }}",
+            "Full Name": "={{ $('On form submission').item.json['Full Name'] }}",
+            "Email Address ": "={{ $('On form submission').item.json['Email Address'] }}",
+            "Phone Number": "={{ $('On form submission').item.json['Phone Number'] }}",
+            "Request Type": "={{ $('On form submission').item.json['How can we help you?'] }}",
+            "Message ": "={{ $('On form submission').item.json['Your Message'] }}",
+            "Preferred Contact Method ": "={{ $('On form submission').item.json['Preferred Contact Method'] }}",
+            "Priority ": "={{ $json.content.parts[0].text.match(/Priority:\\s*([^\\n]+)/)?.[1]?.trim() || '' }}",
+            "AI Response ": "={{ $json.content.parts[0].text.match(/Response:\\s*([\\s\\S]*?)(?=\\nLeadership Follow-up:)/)?.[1]?.trim() || '' }}",
+            "AI Category ": "={{ $json.content.parts[0].text.match(/Category:\\s*([^\\n]+)/)?.[1]?.trim() || '' }}",
+            "AI Summary ": "={{ $json.content.parts[0].text.match(/Summary:\\s*([\\s\\S]*?)(?=\\nResponse:)/)?.[1]?.trim() || '' }}",
+            "Follow-Up Status ": "={{ $json.content.parts[0].text.match(/Leadership Follow-up:\\s*(Yes|No)/i)?.[1]?.toLowerCase() === 'yes' ? 'Pending' : 'No Follow-up Needed' }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address ",
+              "displayName": "Email Address ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Request Type",
+              "displayName": "Request Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message ",
+              "displayName": "Message ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Preferred Contact Method ",
+              "displayName": "Preferred Contact Method ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI Category ",
+              "displayName": "AI Category ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority ",
+              "displayName": "Priority ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI Summary ",
+              "displayName": "AI Summary ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI Response ",
+              "displayName": "AI Response ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Follow-Up Status ",
+              "displayName": "Follow-Up Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        176,
+        160
+      ],
+      "id": "cd8b9ccf-29b9-440e-9fd5-398fb1ea5ec7",
+      "name": "Append row in sheet",
+      
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7745a42e-5174-4395-8df4-fb1078bb2668",
+              "leftValue": "={{ $('Message a model').item.json.content.parts[0].text.match(/Priority:\\s*([^\\n]+)/)?.[1]?.trim() || '' }}",
+              "rightValue": "High",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "8e0d7518-a3a1-476d-a72e-d32e69a22a4a",
+              "leftValue": "={{ $('Message a model').item.json.content.parts[0].text.match(/Priority:\\s*([^\\n]+)/)?.[1]?.trim() || '' }}",
+              "rightValue": "Urgent",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        320,
+        160
+      ],
+      "id": "ce080087-5c40-44ec-9e2b-45a2bbc6683d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "yemisiakindoyin521@gmail.com",
+        "subject": "Church Care Alert – High/Urgent Request",
+        "emailType": "text",
+        "message": "=🚨 CHURCH CARE ALERT\n\nA High/Urgent request has been received and requires attention.\n\nName: {{ $('On form submission').item.json['Full Name'] }}\n\nRequest Type: {{ $('On form submission').item.json['How can we help you?'] }}\n\nMessage: {{ $('On form submission').item.json['Your Message'] }}\n\nPreferred Contact Method: {{ $('On form submission').item.json['Preferred Contact Method'] }}\n\nAI Priority: {{ $('Message a model').item.json.content.parts[0].text.match(/Priority:\\s*([^\\n]+)/)?.[1]?.trim() || '' }}\n\nAI Summary: {{ $('Message a model').item.json.content.parts[0].text.match(/Summary:\\s*([\\s\\S]*?)(?=\\nResponse:)/)?.[1]?.trim() || '' }}\n\nPhone: {{ $('On form submission').item.json['Phone Number'] }}\n\nEmail: {{ $('On form submission').item.json['Email Address'] }}\n\nPlease review this request and follow up with the member as soon as possible.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        -48
+      ],
+      "id": "d5a436a0-3ea4-441e-ad3e-7da0ba0c6a5e",
+      "name": "Send a message",
+      "webhookId": "985779e3-42fa-4cc3-840f-a3db4817ca61",
+      
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json[\"Email Address\"] }}",
+        "subject": "We Received Your Request – RCCG The Envoys",
+        "emailType": "text",
+        "message": "=Dear {{ $('On form submission').item.json[\"Full Name\"] }},\n\n{{ $('Message a model').item.json.content.parts[0].text.match(/Response:\\s*([\\s\\S]*?)(?=\\nLeadership Follow-up:|$)/)?.[1]?.trim() || '' }}\nGod bless you,\nRCCG The Envoys",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        304
+      ],
+      "id": "d1cd4c6e-3973-45fc-80ce-6081f6d90492",
+      "name": "Send a message1",
+      "webhookId": "37a1d58e-5360-4e30-99fa-6c2770145d1d",
+      
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json[\"Email Address\"] }}",
+        "subject": "We Received Your Request – RCCG The Envoys",
+        "emailType": "text",
+        "message": "=Dear {{ $('On form submission').item.json[\"Full Name\"] }},  Thank you for reaching out to RCCG The Envoys.  We have received your request and want you to know that you are not alone. Your message has been received with care, and our team will attend to it appropriately.  {{ $('Message a model').item.json.content.parts[0].text.match(/Response:\\s*([\\s\\S]*?)(?=\\nLeadership Follow-up:|$)/)?.[1]?.trim() || '' }}  Thank you for connecting with us.  Warm regards, RCCG The Envoys Church Care Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        80
+      ],
+      "id": "743ed701-34b1-4233-8102-790b965d3970",
+      "name": "Send a message2",
+      "webhookId": "e39351da-1298-4eb2-a80c-a66f0162b28d",
+      
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ba106050-3276-481e-be08-36ce543f741c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9a481cb9a3fdd4537c4290b01d0a917a809db2ee1d2d873cbbd772d2d04a58ec"
+  },
+  "nodeGroups": [],
+  "id": "QZ3bkyc4xGPBJg7M",
+  "tags": []
+}
